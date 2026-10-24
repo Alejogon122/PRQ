@@ -1,0 +1,72 @@
+[
+  {
+    "id": 1,
+    "color": "Rojo",
+    "anio": 2022,
+    "fabricante": "Toyota",
+    "tipo": "sedán"
+  },
+  {
+    "id": 2,
+    "color": "Azul",
+    "anio": 2021,
+    "fabricante": "Honda",
+    "tipo": "sedán"
+  },
+  {
+    "id": 3,
+    "color": "Negro",
+    "anio": 2023,
+    "fabricante": "Nissan",
+    "tipo": "4x4"
+  },
+  {
+    "id": 4,
+    "color": "Blanco",
+    "anio": 2020,
+    "fabricante": "Hyundai",
+    "tipo": "sedán"
+  },
+  {
+    "id": 5,
+    "color": "Gris",
+    "anio": 2024,
+    "fabricante": "Ford",
+    "tipo": "4x4"
+  },
+  {
+    "id": 6,
+    "color": "Verde",
+    "anio": 2019,
+    "fabricante": "Suzuki",
+    "tipo": "moto"
+  },
+  {
+    "id": 7,
+    "color": "Amarillo",
+    "anio": 2022,
+    "fabricante": "Yamaha",
+    "tipo": "moto"
+  },
+  {
+    "id": 8,
+    "color": "Plateado",
+    "anio": 2021,
+    "fabricante": "Kia",
+    "tipo": "sedán"
+  },
+  {
+    "id": 9,
+    "color": "Naranja",
+    "anio": 2023,
+    "fabricante": "Jeep",
+    "tipo": "4x4"
+  },
+  {
+    "id": 10,
+    "color": "Morado",
+    "anio": 2020,
+    "fabricante": "Kawasaki",
+    "tipo": "moto"
+  }
+]
