@@ -1,7 +1,17 @@
+using Microsoft.EntityFrameworkCore;
+using ParqueoMvc.Data;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+
+var connectionString = builder.Configuration.GetConnectionString("MySecretPostgresConnection")
+    ?? throw new InvalidOperationException(
+        "Connection string 'MySecretPostgresConnection' is not configured.");
+
+builder.Services.AddDbContext<ParqueoDbContext>(options =>
+    options.UseNpgsql(connectionString));
 
 var app = builder.Build();
 
