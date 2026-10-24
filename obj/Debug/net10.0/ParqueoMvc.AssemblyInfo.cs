@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("ParqueoMvc")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+a7a8237e95a2d356abd20819d87cb3aafc4d242c")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0")]
 [assembly: System.Reflection.AssemblyProductAttribute("ParqueoMvc")]
 [assembly: System.Reflection.AssemblyTitleAttribute("ParqueoMvc")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
