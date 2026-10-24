@@ -10,6 +10,59 @@ public sealed class IngresoAutomovilRepository(
     ParqueoDbContext dbContext,
     IParqueoRepository parqueoRepository) : IIngresoAutomovilRepository
 {
+    public async Task<PrqIngresoAutomovil> InsertarAsync(
+        PrqIngresoAutomovil ingreso,
+        CancellationToken cancellationToken = default)
+    {
+        EntidadValidator.Validar(ingreso);
+        EntidadValidator.ValidarClaveNueva(ingreso.Consecutivo, nameof(ingreso.Consecutivo));
+
+        var nuevoIngreso = new PrqIngresoAutomovil
+        {
+            IdParqueo = ingreso.IdParqueo,
+            IdAutomovil = ingreso.IdAutomovil,
+            FechaHoraEntrada = ingreso.FechaHoraEntrada,
+            FechaHoraSalida = ingreso.FechaHoraSalida
+        };
+        dbContext.IngresosAutomoviles.Add(nuevoIngreso);
+        await dbContext.SaveChangesAsync(cancellationToken);
+        return nuevoIngreso;
+    }
+
+    public async Task ActualizarAsync(
+        PrqIngresoAutomovil ingreso,
+        CancellationToken cancellationToken = default)
+    {
+        EntidadValidator.Validar(ingreso);
+        var existente = await dbContext.IngresosAutomoviles
+            .SingleOrDefaultAsync(
+                item => item.Consecutivo == ingreso.Consecutivo,
+                cancellationToken)
+            ?? throw new KeyNotFoundException(
+                $"No existe el ingreso de automóvil con consecutivo {ingreso.Consecutivo}.");
+
+        existente.IdParqueo = ingreso.IdParqueo;
+        existente.IdAutomovil = ingreso.IdAutomovil;
+        existente.FechaHoraEntrada = ingreso.FechaHoraEntrada;
+        existente.FechaHoraSalida = ingreso.FechaHoraSalida;
+        await dbContext.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task EliminarAsync(
+        int consecutivo,
+        CancellationToken cancellationToken = default)
+    {
+        var existente = await dbContext.IngresosAutomoviles
+            .SingleOrDefaultAsync(
+                item => item.Consecutivo == consecutivo,
+                cancellationToken)
+            ?? throw new KeyNotFoundException(
+                $"No existe el ingreso de automóvil con consecutivo {consecutivo}.");
+
+        dbContext.IngresosAutomoviles.Remove(existente);
+        await dbContext.SaveChangesAsync(cancellationToken);
+    }
+
     public Task<PrqIngresoAutomovil?> ObtenerPorIdAsync(
         int consecutivo,
         CancellationToken cancellationToken = default) =>

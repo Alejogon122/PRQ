@@ -8,6 +8,51 @@ namespace ParqueoMvc.Repositories.Database;
 
 public sealed class AutomovilRepository(ParqueoDbContext dbContext) : IAutomovilRepository
 {
+    public async Task<PrqAutomovil> InsertarAsync(
+        PrqAutomovil automovil,
+        CancellationToken cancellationToken = default)
+    {
+        EntidadValidator.Validar(automovil);
+        EntidadValidator.ValidarClaveNueva(automovil.Id, nameof(automovil.Id));
+
+        var nuevoAutomovil = new PrqAutomovil
+        {
+            Color = automovil.Color,
+            Anio = automovil.Anio,
+            Fabricante = automovil.Fabricante,
+            Tipo = automovil.Tipo
+        };
+        dbContext.Automoviles.Add(nuevoAutomovil);
+        await dbContext.SaveChangesAsync(cancellationToken);
+        return nuevoAutomovil;
+    }
+
+    public async Task ActualizarAsync(
+        PrqAutomovil automovil,
+        CancellationToken cancellationToken = default)
+    {
+        EntidadValidator.Validar(automovil);
+        var existente = await dbContext.Automoviles
+            .SingleOrDefaultAsync(item => item.Id == automovil.Id, cancellationToken)
+            ?? throw new KeyNotFoundException($"No existe el automóvil con id {automovil.Id}.");
+
+        existente.Color = automovil.Color;
+        existente.Anio = automovil.Anio;
+        existente.Fabricante = automovil.Fabricante;
+        existente.Tipo = automovil.Tipo;
+        await dbContext.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task EliminarAsync(int id, CancellationToken cancellationToken = default)
+    {
+        var existente = await dbContext.Automoviles
+            .SingleOrDefaultAsync(item => item.Id == id, cancellationToken)
+            ?? throw new KeyNotFoundException($"No existe el automóvil con id {id}.");
+
+        dbContext.Automoviles.Remove(existente);
+        await dbContext.SaveChangesAsync(cancellationToken);
+    }
+
     public Task<PrqAutomovil?> ObtenerPorIdAsync(
         int id,
         CancellationToken cancellationToken = default) =>

@@ -8,6 +8,74 @@ public sealed class IngresoAutomovilJsonRepository(
     JsonDataSource dataSource,
     IParqueoRepository parqueoRepository) : IIngresoAutomovilRepository
 {
+    public async Task<PrqIngresoAutomovil> InsertarAsync(
+        PrqIngresoAutomovil ingreso,
+        CancellationToken cancellationToken = default)
+    {
+        EntidadValidator.Validar(ingreso);
+        EntidadValidator.ValidarClaveNueva(ingreso.Consecutivo, nameof(ingreso.Consecutivo));
+
+        return await dataSource.ModificarIngresosAsync(
+            async elementos =>
+            {
+                await ValidarRelacionesAsync(ingreso, cancellationToken);
+                var nuevo = new PrqIngresoAutomovil
+                {
+                    Consecutivo = elementos.Count == 0
+                        ? 1
+                        : checked(elementos.Max(item => item.Consecutivo) + 1),
+                    IdParqueo = ingreso.IdParqueo,
+                    IdAutomovil = ingreso.IdAutomovil,
+                    FechaHoraEntrada = ingreso.FechaHoraEntrada,
+                    FechaHoraSalida = ingreso.FechaHoraSalida
+                };
+                elementos.Add(nuevo);
+                return nuevo;
+            },
+            cancellationToken);
+    }
+
+    public async Task ActualizarAsync(
+        PrqIngresoAutomovil ingreso,
+        CancellationToken cancellationToken = default)
+    {
+        EntidadValidator.Validar(ingreso);
+
+        await dataSource.ModificarIngresosAsync(
+            async elementos =>
+            {
+                await ValidarRelacionesAsync(ingreso, cancellationToken);
+                var existente = elementos.SingleOrDefault(
+                    item => item.Consecutivo == ingreso.Consecutivo)
+                    ?? throw new KeyNotFoundException(
+                        $"No existe el ingreso de automóvil con consecutivo {ingreso.Consecutivo}.");
+
+                existente.IdParqueo = ingreso.IdParqueo;
+                existente.IdAutomovil = ingreso.IdAutomovil;
+                existente.FechaHoraEntrada = ingreso.FechaHoraEntrada;
+                existente.FechaHoraSalida = ingreso.FechaHoraSalida;
+                return true;
+            },
+            cancellationToken);
+    }
+
+    public async Task EliminarAsync(
+        int consecutivo,
+        CancellationToken cancellationToken = default)
+    {
+        await dataSource.ModificarIngresosAsync(
+            elementos =>
+            {
+                var existente = elementos.SingleOrDefault(
+                    item => item.Consecutivo == consecutivo)
+                    ?? throw new KeyNotFoundException(
+                        $"No existe el ingreso de automóvil con consecutivo {consecutivo}.");
+                elementos.Remove(existente);
+                return Task.FromResult(true);
+            },
+            cancellationToken);
+    }
+
     public async Task<PrqIngresoAutomovil?> ObtenerPorIdAsync(
         int consecutivo,
         CancellationToken cancellationToken = default)
@@ -81,6 +149,26 @@ public sealed class IngresoAutomovilJsonRepository(
         }
 
         return ingresos.ToList();
+    }
+
+    private async Task ValidarRelacionesAsync(
+        PrqIngresoAutomovil ingreso,
+        CancellationToken cancellationToken)
+    {
+        var automoviles = await dataSource.ObtenerAutomovilesAsync(cancellationToken);
+        if (!automoviles.Any(automovil => automovil.Id == ingreso.IdAutomovil))
+        {
+            throw new InvalidDataException(
+                $"No existe el automóvil con id {ingreso.IdAutomovil}.");
+        }
+
+        if (await parqueoRepository.ObtenerPorIdAsync(
+                ingreso.IdParqueo,
+                cancellationToken) is null)
+        {
+            throw new InvalidDataException(
+                $"No existe el parqueo con id {ingreso.IdParqueo}.");
+        }
     }
 
     private async Task<IReadOnlyList<IngresoAutomovilConsulta>> CrearResultadosAsync(

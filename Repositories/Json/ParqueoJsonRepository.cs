@@ -6,6 +6,70 @@ namespace ParqueoMvc.Repositories.Json;
 
 public sealed class ParqueoJsonRepository(JsonDataSource dataSource) : IParqueoRepository
 {
+    public async Task<PrqParqueo> InsertarAsync(
+        PrqParqueo parqueo,
+        CancellationToken cancellationToken = default)
+    {
+        EntidadValidator.Validar(parqueo);
+        EntidadValidator.ValidarClaveNueva(parqueo.Id, nameof(parqueo.Id));
+
+        return await dataSource.ModificarParqueosAsync(
+            elementos =>
+            {
+                var nuevo = new PrqParqueo
+                {
+                    Id = elementos.Count == 0 ? 1 : checked(elementos.Max(item => item.Id) + 1),
+                    NombreProvincia = parqueo.NombreProvincia,
+                    Nombre = parqueo.Nombre,
+                    PrecioPorHora = parqueo.PrecioPorHora
+                };
+                elementos.Add(nuevo);
+                return Task.FromResult(nuevo);
+            },
+            cancellationToken);
+    }
+
+    public async Task ActualizarAsync(
+        PrqParqueo parqueo,
+        CancellationToken cancellationToken = default)
+    {
+        EntidadValidator.Validar(parqueo);
+
+        await dataSource.ModificarParqueosAsync(
+            elementos =>
+            {
+                var existente = elementos.SingleOrDefault(item => item.Id == parqueo.Id)
+                    ?? throw new KeyNotFoundException(
+                        $"No existe el parqueo con id {parqueo.Id}.");
+
+                existente.NombreProvincia = parqueo.NombreProvincia;
+                existente.Nombre = parqueo.Nombre;
+                existente.PrecioPorHora = parqueo.PrecioPorHora;
+                return Task.FromResult(true);
+            },
+            cancellationToken);
+    }
+
+    public async Task EliminarAsync(int id, CancellationToken cancellationToken = default)
+    {
+        await dataSource.ModificarParqueosAsync(
+            async elementos =>
+            {
+                var existente = elementos.SingleOrDefault(item => item.Id == id)
+                    ?? throw new KeyNotFoundException($"No existe el parqueo con id {id}.");
+                var ingresos = await dataSource.ObtenerIngresosAsync(cancellationToken);
+                if (ingresos.Any(ingreso => ingreso.IdParqueo == id))
+                {
+                    throw new InvalidOperationException(
+                        $"No se puede eliminar el parqueo {id} porque tiene ingresos asociados.");
+                }
+
+                elementos.Remove(existente);
+                return true;
+            },
+            cancellationToken);
+    }
+
     public async Task<PrqParqueo?> ObtenerPorIdAsync(
         int id,
         CancellationToken cancellationToken = default) =>

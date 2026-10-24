@@ -8,6 +8,49 @@ namespace ParqueoMvc.Repositories.Database;
 
 public sealed class ParqueoRepository(ParqueoDbContext dbContext) : IParqueoRepository
 {
+    public async Task<PrqParqueo> InsertarAsync(
+        PrqParqueo parqueo,
+        CancellationToken cancellationToken = default)
+    {
+        EntidadValidator.Validar(parqueo);
+        EntidadValidator.ValidarClaveNueva(parqueo.Id, nameof(parqueo.Id));
+
+        var nuevoParqueo = new PrqParqueo
+        {
+            NombreProvincia = parqueo.NombreProvincia,
+            Nombre = parqueo.Nombre,
+            PrecioPorHora = parqueo.PrecioPorHora
+        };
+        dbContext.Parqueos.Add(nuevoParqueo);
+        await dbContext.SaveChangesAsync(cancellationToken);
+        return nuevoParqueo;
+    }
+
+    public async Task ActualizarAsync(
+        PrqParqueo parqueo,
+        CancellationToken cancellationToken = default)
+    {
+        EntidadValidator.Validar(parqueo);
+        var existente = await dbContext.Parqueos
+            .SingleOrDefaultAsync(item => item.Id == parqueo.Id, cancellationToken)
+            ?? throw new KeyNotFoundException($"No existe el parqueo con id {parqueo.Id}.");
+
+        existente.NombreProvincia = parqueo.NombreProvincia;
+        existente.Nombre = parqueo.Nombre;
+        existente.PrecioPorHora = parqueo.PrecioPorHora;
+        await dbContext.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task EliminarAsync(int id, CancellationToken cancellationToken = default)
+    {
+        var existente = await dbContext.Parqueos
+            .SingleOrDefaultAsync(item => item.Id == id, cancellationToken)
+            ?? throw new KeyNotFoundException($"No existe el parqueo con id {id}.");
+
+        dbContext.Parqueos.Remove(existente);
+        await dbContext.SaveChangesAsync(cancellationToken);
+    }
+
     public Task<PrqParqueo?> ObtenerPorIdAsync(
         int id,
         CancellationToken cancellationToken = default) =>

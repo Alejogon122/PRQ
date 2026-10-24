@@ -9,6 +9,16 @@ public interface IIngresoAutomovilRepository
         int consecutivo,
         CancellationToken cancellationToken = default);
 
+    Task<PrqIngresoAutomovil> InsertarAsync(
+        PrqIngresoAutomovil ingreso,
+        CancellationToken cancellationToken = default);
+
+    Task ActualizarAsync(
+        PrqIngresoAutomovil ingreso,
+        CancellationToken cancellationToken = default);
+
+    Task EliminarAsync(int consecutivo, CancellationToken cancellationToken = default);
+
     Task<IReadOnlyList<IngresoAutomovilConsulta>> ObtenerIngresosPorTipoYFechasAsync(
         string tipo,
         DateTime desde,
